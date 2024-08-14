@@ -36,7 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class PlayerDoll extends JavaPlugin {
-    public static final boolean isDev = true;
+    public static final boolean isDev = false;
     public static PlayerDoll PLUGIN;
     public static Logger LOGGER;
     public static String SERVER_VERSION;
@@ -181,7 +181,7 @@ public final class PlayerDoll extends JavaPlugin {
             case "1.20.2" -> INTERNAL_VERSION = "v1_20_R2";
             case "1.20.3", "1.20.4" -> INTERNAL_VERSION = "v1_20_R3";
             case "1.20.5", "1.20.6" -> INTERNAL_VERSION = "v1_20_R4";
-            case "1.21" -> INTERNAL_VERSION = "v1_21_R1";
+            case "1.21", "1.21.1" -> INTERNAL_VERSION = "v1_21_R1";
             default -> LOGGER.severe("Unknown or Unsupported Versions, Please Use with Cautions.");
         }
     }
