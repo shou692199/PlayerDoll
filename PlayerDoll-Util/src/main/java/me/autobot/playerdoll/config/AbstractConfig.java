@@ -3,8 +3,6 @@ package me.autobot.playerdoll.config;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.util.logging.Level;
-
 public abstract class AbstractConfig {
     public YamlConfiguration yamlConfiguration;
     public static final int CURRENT_VERSION = 28;
@@ -18,11 +16,11 @@ public abstract class AbstractConfig {
     }
     public boolean checkVersion() {
         if (version != CURRENT_VERSION) {
-            Bukkit.getLogger().log(Level.WARNING,"[PlayerDoll] Config [" + getName() + "] version does not " +
+            Bukkit.getLogger().warning("[PlayerDoll] Config [" + getName() + "] version does not " +
                     "Match the Latest ("+ CURRENT_VERSION +"). " +
                     "Default value of missing keys will be used."
             );
-            Bukkit.getLogger().log(Level.INFO,"[PlayerDoll] Config [" + getName() + "] version updated.");
+            Bukkit.getLogger().info("[PlayerDoll] Config [" + getName() + "] version updated.");
             return false;
         }
         return true;

@@ -11,6 +11,10 @@ public class WrapperBlockHitResult extends Wrapper<MovingObjectPositionBlock> im
     public static WrapperBlockHitResult wrap(MovingObjectPositionBlock blockHitResult) {
         return new WrapperBlockHitResult(blockHitResult);
     }
+
+//    public static WrapperBlockHitResult construct(WrapperVec3 vec3, EnumDirection direction, WrapperBlockPos pos, boolean inside) {
+//        return WrapperBlockHitResult.wrap(new MovingObjectPositionBlock(vec3.getSource(), direction, pos.getSource(), inside));
+//    }
     public WrapperBlockHitResult(Object blockHitResult) {
         super(blockHitResult);
     }

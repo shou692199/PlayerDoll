@@ -9,7 +9,7 @@ public class WrapperVec3 extends Wrapper<Vec3D> {
     public final double y;
     public final double z;
 
-    public static WrapperVec3 wrap(double x, double y, double z) {
+    public static WrapperVec3 construct(double x, double y, double z) {
         return WrapperVec3.wrap(new Vec3D(x,y,z));
     }
 

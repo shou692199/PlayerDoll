@@ -9,7 +9,7 @@
         <artifactId>PlayerDoll-Parent</artifactId>
         <version>1.35</version>
     </parent>
-    <artifactId>PlayerDoll-Paper</artifactId>
+    <artifactId>PlayerDoll-Connection</artifactId>
     <version>${project.parent.version}</version>
 
     <properties>
@@ -21,33 +21,23 @@
 
     <repositories>
         <repository>
-            <id>papermc</id>
-            <url>https://repo.papermc.io/repository/maven-public/</url>
+            <id>spigotmc-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
     </repositories>
 
     <dependencies>
         <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
             <version>${craftbukkit.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-mojangapi</artifactId>
-            <version>${craftbukkit.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>me.autobot</groupId>
-            <artifactId>PlayerDoll-Common</artifactId>
-            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>me.autobot</groupId>
             <artifactId>PlayerDoll-Util</artifactId>
             <version>${project.parent.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

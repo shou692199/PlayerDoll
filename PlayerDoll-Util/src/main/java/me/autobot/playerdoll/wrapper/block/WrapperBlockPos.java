@@ -9,6 +9,10 @@ public class WrapperBlockPos extends Wrapper<BlockPosition> {
         return new WrapperBlockPos(blockPos);
     }
 
+    public static WrapperBlockPos construct(int x, int y, int z) {
+        return WrapperBlockPos.wrap(new BlockPosition(x, y, z));
+    }
+
     public WrapperBlockPos(Object blockPosition) {
         super(blockPosition);
     }
