@@ -1,7 +1,8 @@
 package me.autobot.playerdoll.v1_20_R2.connection.configuration;
 
 import me.autobot.playerdoll.PlayerDoll;
-import me.autobot.playerdoll.connection.CursedConnection;
+import me.autobot.playerdoll.netty.ConnectionFetcher;
+import me.autobot.playerdoll.scheduler.SchedulerHelper;
 import me.autobot.playerdoll.v1_20_R2.connection.play.ServerGamePlayListener;
 import me.autobot.playerdoll.v1_20_R2.player.ServerDoll;
 import net.minecraft.network.Connection;
@@ -25,7 +26,7 @@ public class ServerConfigurationListener extends ServerConfigurationPacketListen
         Runnable task = () -> {
             this.connection.suspendInboundAfterProtocolChange();
             ServerGamePlayListener gamePlayListener = new ServerGamePlayListener((ServerDoll) this.player, this.connection, playerProfile());
-            CursedConnection.setPacketListener(this.connection, gamePlayListener);
+            ConnectionFetcher.setPacketListener(this.connection, gamePlayListener);
             //((ServerDoll) this.player).serverConnection = this.connection;
 //            ((ServerDoll) this.player).setup(caller);
             ((ServerDoll) this.player).callDollJoinEvent();
@@ -33,7 +34,7 @@ public class ServerConfigurationListener extends ServerConfigurationPacketListen
             this.connection.resumeInboundAfterProtocolChange();
         };
         if (PlayerDoll.serverBranch == PlayerDoll.ServerBranch.FOLIA) {
-            PlayerDoll.scheduler.globalTaskDelayed(task, 5);
+            SchedulerHelper.scheduler.globalTaskDelayed(task, 5);
         } else {
             task.run();
         }

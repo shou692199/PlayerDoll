@@ -1,7 +1,7 @@
 package me.autobot.playerdoll.v1_20_R2.connection.login;
 
+import me.autobot.playerdoll.doll.PlayerConvertInjector;
 import me.autobot.playerdoll.listener.bukkit.AsyncPlayerPreLogin;
-import me.autobot.playerdoll.packet.PlayerConvertInjector;
 import me.autobot.playerdoll.util.ReflectionUtil;
 import me.autobot.playerdoll.v1_20_R2.player.TransPlayer;
 import net.minecraft.network.Connection;

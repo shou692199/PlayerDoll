@@ -1,7 +1,6 @@
 package me.autobot.playerdoll.v1_21_R1.connection.login;
 
 import com.mojang.authlib.GameProfile;
-import me.autobot.playerdoll.PlayerDoll;
 import me.autobot.playerdoll.util.ReflectionUtil;
 import me.autobot.playerdoll.v1_21_R1.connection.configuration.ServerConfigurationListener;
 import me.autobot.playerdoll.v1_21_R1.player.ServerDoll;
@@ -58,10 +57,9 @@ public class DollLoginListener extends ServerLoginPacketListenerImpl {
 
     @Override
     public void handleLoginAcknowledgement(ServerboundLoginAcknowledgedPacket serverboundloginacknowledgedpacket) {
-        if (PlayerDoll.serverBranch != PlayerDoll.ServerBranch.FOLIA) {
-            // Avoid IllegalStateException "Asynchronous Chunk getEntities call!"
-            PacketUtils.ensureRunningOnSameThread(serverboundloginacknowledgedpacket, this, (MinecraftServer) ReflectionUtil.getDedicatedServerInstance());
-        }
+        // Avoid IllegalStateException "Asynchronous Chunk getEntities call!"
+        PacketUtils.ensureRunningOnSameThread(serverboundloginacknowledgedpacket, this, (MinecraftServer) ReflectionUtil.getDedicatedServerInstance());
+
         this.connection.setupOutboundProtocol(ConfigurationProtocols.CLIENTBOUND);
 
         ServerDoll player = ServerDoll.callSpawn(profile);

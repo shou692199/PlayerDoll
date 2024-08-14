@@ -5,15 +5,14 @@ import me.autobot.playerdoll.PlayerDoll;
 import me.autobot.playerdoll.doll.Doll;
 import me.autobot.playerdoll.doll.config.DollConfig;
 import me.autobot.playerdoll.event.DollJoinEvent;
-import me.autobot.playerdoll.socket.SocketHelper;
+import me.autobot.playerdoll.netty.DollConnection;
+import me.autobot.playerdoll.scheduler.SchedulerHelper;
 import me.autobot.playerdoll.util.ReflectionUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.attribute.Attribute;
@@ -51,10 +50,10 @@ public class ServerDoll extends ExtServerPlayer implements Doll {
     @Override
     public void dollDisconnect() {
         //shakeOff();
-        SocketHelper.DOLL_CLIENTS.get(uuid).getSocketReader().close();
+        DollConnection.DOLL_CONNECTIONS.get(uuid).close();
 //        Runnable t = () -> this.connection.disconnect(Component.literal(r));
 //        if (PlayerDoll.serverBranch == PlayerDoll.ServerBranch.FOLIA) {
-//            PlayerDoll.scheduler.entityTask(t, getBukkitPlayer());
+//            SchedulerHelper.scheduler.entityTask(t, getBukkitPlayer());
 //        } else {
 //            t.run();
 //        }
@@ -63,7 +62,7 @@ public class ServerDoll extends ExtServerPlayer implements Doll {
         //this.connection.disconnect(r);
 //        Runnable t = () -> this.connection.onDisconnect(Component.literal(r));
 //        if (PlayerDoll.serverBranch == PlayerDoll.ServerBranch.FOLIA) {
-//            PlayerDoll.scheduler.entityTask(t, getBukkitPlayer());
+//            SchedulerHelper.scheduler.entityTask(t, getBukkitPlayer());
 //        } else {
 //            t.run();
 //        }
@@ -94,7 +93,7 @@ public class ServerDoll extends ExtServerPlayer implements Doll {
             // Add Network task
             if (PlayerDoll.serverBranch == PlayerDoll.ServerBranch.FOLIA) {
                 // Run on entityTask as Folia's implementation
-                PlayerDoll.scheduler.entityTaskDelayed(this::updateActionPack, getBukkitPlayer(), 1L);
+                SchedulerHelper.scheduler.entityTaskDelayed(this::updateActionPack, getBukkitPlayer(), 1L);
             } else {
                 server.tell(server.wrapRunnable(this::updateActionPack));
             }
@@ -149,7 +148,7 @@ public class ServerDoll extends ExtServerPlayer implements Doll {
             if (ov == v) {
                 return true;
             }
-            PlayerDoll.scheduler.entityTask(() -> setDeltaMovement(v), getBukkitPlayer());
+            SchedulerHelper.scheduler.entityTask(() -> setDeltaMovement(v), getBukkitPlayer());
             return true;
         }
         setDeltaMovement(ov);

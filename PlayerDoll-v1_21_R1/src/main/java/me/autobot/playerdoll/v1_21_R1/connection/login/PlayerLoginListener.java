@@ -1,9 +1,9 @@
 package me.autobot.playerdoll.v1_21_R1.connection.login;
 
 import me.autobot.playerdoll.PlayerDoll;
-import me.autobot.playerdoll.connection.CursedConnection;
+import me.autobot.playerdoll.doll.PlayerConvertInjector;
 import me.autobot.playerdoll.listener.bukkit.AsyncPlayerPreLogin;
-import me.autobot.playerdoll.packet.PlayerConvertInjector;
+import me.autobot.playerdoll.netty.ConnectionFetcher;
 import me.autobot.playerdoll.util.ReflectionUtil;
 import me.autobot.playerdoll.v1_21_R1.player.TransPlayer;
 import net.minecraft.network.Connection;
@@ -36,7 +36,7 @@ public class PlayerLoginListener extends ServerLoginPacketListenerImpl {
 
         PlayerConvertInjector.swapListenerFunc = (oldListener) -> {
             ServerLoginPacketListenerImpl l = (ServerLoginPacketListenerImpl) oldListener;
-            CursedConnection.setPacketListener(l.connection, new PlayerLoginListener((MinecraftServer) ReflectionUtil.getDedicatedServerInstance(), l.connection, getPlayer(l), l.isTransferred()));
+            ConnectionFetcher.setPacketListener(l.connection, new PlayerLoginListener((MinecraftServer) ReflectionUtil.getDedicatedServerInstance(), l.connection, getPlayer(l), l.isTransferred()));
         };
     }
 
