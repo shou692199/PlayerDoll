@@ -39,7 +39,7 @@ public abstract class SubCommand {
         if (!validProfile(profile)) {
             ComponentBuilder builder = new ComponentBuilder();
             builder.color(ChatColor.RED).append(new TranslatableComponent("argument.player.unknown"));
-            sender.spigot().sendMessage(builder.build());
+            sender.spigot().sendMessage(builder.create());
             return false;
         }
         return true;

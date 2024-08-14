@@ -2,10 +2,10 @@ package me.autobot.playerdoll;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import io.netty.channel.Channel;
 import me.autobot.playerdoll.doll.DollManager;
-import me.autobot.playerdoll.socket.ClientSocket;
-import me.autobot.playerdoll.socket.SocketHelper;
-import me.autobot.playerdoll.socket.io.SocketReader;
+import me.autobot.playerdoll.netty.DollConnection;
+import me.autobot.playerdoll.netty.handler.HandshakeHandler;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
@@ -24,13 +24,17 @@ public class PluginMessenger implements PluginMessageListener {
             case 0 -> {
                 PlayerDoll.LOGGER.info("Start capture Login Listener");
                 UUID dollUUID = UUID.fromString(input.readUTF());
-                ClientSocket socket = SocketHelper.DOLL_CLIENTS.get(dollUUID);
+                Channel dollChannel = DollConnection.DOLL_CONNECTIONS.get(dollUUID);
+                HandshakeHandler handler = dollChannel.pipeline().get(HandshakeHandler.class);
                 // Awake the thread to continue Login
-                SocketReader socketReader = socket.getSocketReader();
-                synchronized (socketReader) {
-                    PlayerDoll.LOGGER.info("Notify Wait Thread");
-                    socketReader.notify();
+                if (handler != null) {
+                    synchronized (handler) {
+                        PlayerDoll.LOGGER.info("Notify Wait Thread");
+                        handler.notify();
+                    }
                 }
+
+
             }
             // Set last join server
             case 1 -> {
@@ -43,9 +47,13 @@ public class PluginMessenger implements PluginMessageListener {
             case 2 -> {
                 PlayerDoll.LOGGER.info("Plugin Start Handshake");
                 UUID dollUUID = UUID.fromString(input.readUTF());
-                SocketReader reader = SocketHelper.DOLL_CLIENTS.get(dollUUID).getSocketReader();
-                synchronized (reader) {
-                    reader.notify();
+                Channel dollChannel = DollConnection.DOLL_CONNECTIONS.get(dollUUID);
+                HandshakeHandler handler = dollChannel.pipeline().get(HandshakeHandler.class);
+                // Awake the thread to continue Login
+                if (handler != null) {
+                    synchronized (handler) {
+                        handler.notify();
+                    }
                 }
             }
         }

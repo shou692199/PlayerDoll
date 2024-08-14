@@ -10,16 +10,21 @@ import me.autobot.playerdoll.wrapper.entity.WrapperEntity;
 import me.autobot.playerdoll.wrapper.entity.WrapperGameType;
 import me.autobot.playerdoll.wrapper.entity.WrapperInteractionResult;
 import me.autobot.playerdoll.wrapper.packet.WrapperServerboundPlayerActionPacket_Action;
-import me.autobot.playerdoll.wrapper.phys.*;
+import me.autobot.playerdoll.wrapper.phys.WrapperBlockHitResult;
+import me.autobot.playerdoll.wrapper.phys.WrapperVec2;
+import me.autobot.playerdoll.wrapper.phys.WrapperVec3;
 import net.minecraft.core.EnumDirection;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
 import org.bukkit.entity.minecart.RideableMinecart;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.RayTraceResult;
 
 import java.util.*;
 
@@ -265,12 +270,23 @@ public class EntityPlayerActionPack {
             actionPackPlayer.setXXA(strafing * vel);
         }
     }
-
-    static WrapperHitResult getTarget(EntityPlayerActionPack actionPack)
+//    static WrapperHitResult getTarget(EntityPlayerActionPack actionPack)
+//    {
+//        double reach = actionPack.player.getGameMode() == GameMode.CREATIVE ? 5 : 4.5f;
+//
+//        return Tracer.rayTrace(actionPack.actionPackPlayer, 1, reach, false);
+//    }
+    static RayTraceResult getTarget(EntityPlayerActionPack actionPack)
     {
         double reach = actionPack.player.getGameMode() == GameMode.CREATIVE ? 5 : 4.5f;
 
-        return Tracer.rayTrace(actionPack.actionPackPlayer, 1, reach, false);
+        return Tracer.rayTrace(actionPack.player, reach, false);
+    }
+    static WrapperBlockHitResult getTargetBlock(EntityPlayerActionPack actionPack)
+    {
+        double reach = actionPack.player.getGameMode() == GameMode.CREATIVE ? 5 : 4.5f;
+
+        return Tracer.rayTraceBlocks(actionPack.baseEntity, reach, false, actionPack.player);
     }
 
     private void dropItemFromSlot(int slot, boolean dropAll)
@@ -325,46 +341,51 @@ public class EntityPlayerActionPack {
                         {
                             return true;
                         }
-                        WrapperHitResult hit = getTarget(ap);
+                        RayTraceResult hit = getTarget(ap);
                         for (Enum<?> hand : ActionPackPlayer.getInteractionHandEnums())
                         {
-                            if (hit.getType() == WrapperHitResult.BLOCK) {
-                                packPlayer.resetLastActionTime();
-                                WrapperServerLevel world = packPlayer.serverLevel();
-                                WrapperBlockHitResult blockHit = (WrapperBlockHitResult) hit;
-                                WrapperBlockPos pos = blockHit.getBlockPos();
-                                EnumDirection side = blockHit.getDirection();
-                                if (pos.getY() < bukkitPlayer.getWorld().getMaxHeight() - (side == WrapperDirection.UP ? 1 : 0) && world.mayInteract(player, pos))
-                                {
-                                    WrapperInteractionResult result = packPlayer.getGameMode().useItemOn(player, world, packPlayer.getItemInHand(hand), hand, blockHit);
-                                    if (result.consumesAction()) {
-                                        if (result.shouldSwing()) ActionType.swingCorrectHand(bukkitPlayer, hand);
+                            if (hit != null) {
+                                Block blockHit = hit.getHitBlock();
+                                Entity entityHit = hit.getHitEntity();
+                                if (blockHit != null) {
+                                    packPlayer.resetLastActionTime();
+                                    WrapperServerLevel world = packPlayer.serverLevel();
+                                    //WrapperBlockHitResult blockHit = (WrapperBlockHitResult) hit;
+                                    WrapperBlockPos pos = WrapperBlockPos.construct(blockHit.getX(), blockHit.getY(), blockHit.getZ());
+                                    BlockFace side = hit.getHitBlockFace();
+                                    //EnumDirection side = blockHit.getDirection();
+                                    if (pos.getY() < bukkitPlayer.getWorld().getMaxHeight() - (side == BlockFace.UP ? 1 : 0) && world.mayInteract(player, pos)) {
+                                        WrapperBlockHitResult blockHitResult = getTargetBlock(ap);
+
+                                        WrapperInteractionResult result = packPlayer.getGameMode().useItemOn(player, world, packPlayer.getItemInHand(hand), hand, blockHitResult);
+                                        if (result.consumesAction()) {
+                                            if (result.shouldSwing()) EntityPlayerActionPack.ActionType.swingCorrectHand(bukkitPlayer, hand);
+                                            ap.itemUseCooldown = 3;
+                                            return true;
+                                        }
+                                    }
+                                } else if (entityHit != null) {
+                                    packPlayer.resetLastActionTime();
+                                    //WrapperEntityHitResult entityHit = (WrapperEntityHitResult) hit;
+                                    WrapperEntity entity = packPlayer.wrapEntity(entityHit);
+
+                                    Entity craftEntity = entity.getCraftEntity();
+
+                                    boolean handWasEmpty = ap.isEmpty(EntityPlayerActionPack.ActionType.getItemInHand(bukkitPlayer, hand));
+
+                                    boolean itemFrameEmpty = (craftEntity instanceof ItemFrame itemFrame) && ap.isEmpty(itemFrame.getItem());
+                                    Location entityLocation = craftEntity.getLocation();
+                                    Location subtractedLocation = entityHit.getLocation().subtract(entityLocation);
+                                    WrapperVec3 relativeHitPos = WrapperVec3.construct(subtractedLocation.getX(), subtractedLocation.getY(), subtractedLocation.getZ());
+                                    if (entity.interactAt(player, relativeHitPos, hand).consumesAction()) {
                                         ap.itemUseCooldown = 3;
                                         return true;
                                     }
-                                }
-                            } else if (hit.getType() == WrapperHitResult.ENTITY) {
-                                packPlayer.resetLastActionTime();
-                                WrapperEntityHitResult entityHit = (WrapperEntityHitResult) hit;
-                                WrapperEntity entity = packPlayer.wrapEntity(entityHit.getEntity());
-
-                                Entity craftEntity = entity.getCraftEntity();
-
-                                boolean handWasEmpty = ap.isEmpty(ActionType.getItemInHand(bukkitPlayer, hand));
-
-                                boolean itemFrameEmpty = (craftEntity instanceof ItemFrame itemFrame) && ap.isEmpty(itemFrame.getItem());
-                                Location entityLocation = craftEntity.getLocation();
-                                WrapperVec3 relativeHitPos = WrapperVec3.wrap(entityHit.getLocation().subtract(entityLocation.getX(), entityLocation.getY(), entityLocation.getZ()));
-                                if (entity.interactAt(player, relativeHitPos, hand).consumesAction())
-                                {
-                                    ap.itemUseCooldown = 3;
-                                    return true;
-                                }
-                                // fix for SS itemframe always returns CONSUME even if no action is performed
-                                if (packPlayer.interactOn(entity, hand).consumesAction() && !(handWasEmpty && itemFrameEmpty))
-                                {
-                                    ap.itemUseCooldown = 3;
-                                    return true;
+                                    // fix for SS itemframe always returns CONSUME even if no action is performed
+                                    if (packPlayer.interactOn(entity, hand).consumesAction() && !(handWasEmpty && itemFrameEmpty)) {
+                                        ap.itemUseCooldown = 3;
+                                        return true;
+                                    }
                                 }
                             }
                             Object handItem = packPlayer.getItemInHand(hand);
@@ -375,6 +396,56 @@ public class EntityPlayerActionPack {
                             }
                         }
                         return false;
+//                        WrapperHitResult hit = getTarget(ap);
+//                        for (Enum<?> hand : ActionPackPlayer.getInteractionHandEnums())
+//                        {
+//                            if (hit.getType() == WrapperHitResult.BLOCK) {
+//                                packPlayer.resetLastActionTime();
+//                                WrapperServerLevel world = packPlayer.serverLevel();
+//                                WrapperBlockHitResult blockHit = (WrapperBlockHitResult) hit;
+//                                WrapperBlockPos pos = blockHit.getBlockPos();
+//                                EnumDirection side = blockHit.getDirection();
+//                                if (pos.getY() < bukkitPlayer.getWorld().getMaxHeight() - (side == WrapperDirection.UP ? 1 : 0) && world.mayInteract(player, pos))
+//                                {
+//                                    WrapperInteractionResult result = packPlayer.getGameMode().useItemOn(player, world, packPlayer.getItemInHand(hand), hand, blockHit);
+//                                    if (result.consumesAction()) {
+//                                        if (result.shouldSwing()) ActionType.swingCorrectHand(bukkitPlayer, hand);
+//                                        ap.itemUseCooldown = 3;
+//                                        return true;
+//                                    }
+//                                }
+//                            } else if (hit.getType() == WrapperHitResult.ENTITY) {
+//                                packPlayer.resetLastActionTime();
+//                                WrapperEntityHitResult entityHit = (WrapperEntityHitResult) hit;
+//                                WrapperEntity entity = packPlayer.wrapEntity(entityHit.getEntity());
+//
+//                                Entity craftEntity = entity.getCraftEntity();
+//
+//                                boolean handWasEmpty = ap.isEmpty(ActionType.getItemInHand(bukkitPlayer, hand));
+//
+//                                boolean itemFrameEmpty = (craftEntity instanceof ItemFrame itemFrame) && ap.isEmpty(itemFrame.getItem());
+//                                Location entityLocation = craftEntity.getLocation();
+//                                WrapperVec3 relativeHitPos = WrapperVec3.wrap(entityHit.getLocation().subtract(entityLocation.getX(), entityLocation.getY(), entityLocation.getZ()));
+//                                if (entity.interactAt(player, relativeHitPos, hand).consumesAction())
+//                                {
+//                                    ap.itemUseCooldown = 3;
+//                                    return true;
+//                                }
+//                                // fix for SS itemframe always returns CONSUME even if no action is performed
+//                                if (packPlayer.interactOn(entity, hand).consumesAction() && !(handWasEmpty && itemFrameEmpty))
+//                                {
+//                                    ap.itemUseCooldown = 3;
+//                                    return true;
+//                                }
+//                            }
+//                            Object handItem = packPlayer.getItemInHand(hand);
+//                            if (packPlayer.getGameMode().useItem(player, packPlayer.level(), handItem, hand).consumesAction())
+//                            {
+//                                ap.itemUseCooldown = 3;
+//                                return true;
+//                            }
+//                        }
+//                        return false;
                     }
 
                     @Override
@@ -390,28 +461,33 @@ public class EntityPlayerActionPack {
             boolean execute(BaseEntity player, Action action) {
                 EntityPlayerActionPack actionPack = player.getActionPack();
                 Player bukkitPlayer = actionPack.player;
-                WrapperHitResult hit = getTarget(actionPack);
+                //WrapperHitResult hit = getTarget(actionPack);
+                RayTraceResult hit = getTarget(actionPack);
                 ActionPackPlayer packPlayer = actionPack.actionPackPlayer;
-                if (hit.getType() == WrapperHitResult.ENTITY) {
-                    WrapperEntityHitResult entityHit = (WrapperEntityHitResult) hit;
+                if (hit == null) {
+                    return false;
+                }
+                Block blockHit = hit.getHitBlock();
+                Entity entityHit = hit.getHitEntity();
+                if (entityHit != null) {
                     if (!action.isContinuous)
                     {
-                        bukkitPlayer.attack(packPlayer.wrapEntity(entityHit.getEntity()).getCraftEntity());
+                        bukkitPlayer.attack(entityHit);
                         bukkitPlayer.swingMainHand();
                     }
                     packPlayer.resetAttackStrengthTicker();
                     packPlayer.resetLastActionTime();
                     return true;
-                } else if (hit.getType() == WrapperHitResult.BLOCK) {
+                } else if (blockHit != null) {
                     EntityPlayerActionPack ap = player.getActionPack();
                     if (ap.blockHitDelay > 0)
                     {
                         ap.blockHitDelay--;
                         return false;
                     }
-                    WrapperBlockHitResult blockHit = (WrapperBlockHitResult) hit;
-                    WrapperBlockPos pos = blockHit.getBlockPos();
-                    EnumDirection side = blockHit.getDirection();
+                    WrapperBlockPos pos = WrapperBlockPos.construct(blockHit.getX(), blockHit.getY(), blockHit.getZ());
+                    EnumDirection side = WrapperDirection.convertBlockFace(hit.getHitBlockFace());
+                    //EnumDirection side = blockHit.getDirection();
                     if (packPlayer.blockActionRestricted(packPlayer.level(), pos, WrapperGameType.parse(bukkitPlayer.getGameMode()))) return false;
                     if (ap.currentBlock != null && packPlayer.level().getBlockState(ap.currentBlock).isAir())
                     {
@@ -468,6 +544,82 @@ public class EntityPlayerActionPack {
                     return blockBroken;
                 }
                 return false;
+//                if (hit.getType() == WrapperHitResult.ENTITY) {
+//                    WrapperEntityHitResult entityHit = (WrapperEntityHitResult) hit;
+//                    if (!action.isContinuous)
+//                    {
+//                        bukkitPlayer.attack(packPlayer.wrapEntity(entityHit.getEntity()).getCraftEntity());
+//                        bukkitPlayer.swingMainHand();
+//                    }
+//                    packPlayer.resetAttackStrengthTicker();
+//                    packPlayer.resetLastActionTime();
+//                    return true;
+//                } else if (hit.getType() == WrapperHitResult.BLOCK) {
+//                    EntityPlayerActionPack ap = player.getActionPack();
+//                    if (ap.blockHitDelay > 0)
+//                    {
+//                        ap.blockHitDelay--;
+//                        return false;
+//                    }
+//                    WrapperBlockHitResult blockHit = (WrapperBlockHitResult) hit;
+//                    WrapperBlockPos pos = blockHit.getBlockPos();
+//                    EnumDirection side = blockHit.getDirection();
+//                    if (packPlayer.blockActionRestricted(packPlayer.level(), pos, WrapperGameType.parse(bukkitPlayer.getGameMode()))) return false;
+//                    if (ap.currentBlock != null && packPlayer.level().getBlockState(ap.currentBlock).isAir())
+//                    {
+//                        ap.currentBlock = null;
+//                        return false;
+//                    }
+//                    WrapperBlockState state = packPlayer.level().getBlockState(pos);
+//                    boolean blockBroken = false;
+//                    if (bukkitPlayer.getGameMode() == GameMode.CREATIVE)
+//                    {
+//                        packPlayer.getGameMode().handleBlockBreakAction(pos, WrapperServerboundPlayerActionPacket_Action.START_DESTROY_BLOCK, side, bukkitPlayer.getWorld().getMaxHeight(), -1);
+//                        ap.blockHitDelay = 5;
+//                        blockBroken = true;
+//                    }
+//                    else if (ap.currentBlock == null || ap.currentBlock.getSource() == null || !ap.currentBlock.getSource().equals(pos.getSource()))
+//                    {
+//                        if (ap.currentBlock != null && ap.currentBlock.getSource() != null)
+//                        {
+//                            packPlayer.getGameMode().handleBlockBreakAction(pos, WrapperServerboundPlayerActionPacket_Action.ABORT_DESTROY_BLOCK, side, bukkitPlayer.getWorld().getMaxHeight(), -1);
+//                        }
+//                        packPlayer.getGameMode().handleBlockBreakAction(pos, WrapperServerboundPlayerActionPacket_Action.START_DESTROY_BLOCK, side, bukkitPlayer.getWorld().getMaxHeight(), -1);
+//                        boolean notAir = !state.isAir();
+//                        if (notAir && ap.curBlockDamageMP == 0)
+//                        {
+//                            state.attack(packPlayer.level(), pos, player);
+//                        }
+//                        if (notAir && state.getDestroyProgress(player, packPlayer.level(), pos) >= 1)
+//                        {
+//                            ap.currentBlock = null;
+//                            //instamine??
+//                            blockBroken = true;
+//                        }
+//                        else
+//                        {
+//                            ap.currentBlock = pos;
+//                            ap.curBlockDamageMP = 0;
+//                        }
+//                    }
+//                    else
+//                    {
+//                        ap.curBlockDamageMP += state.getDestroyProgress(player, packPlayer.level(), pos);
+//                        if (ap.curBlockDamageMP >= 1)
+//                        {
+//                            packPlayer.getGameMode().handleBlockBreakAction(pos, WrapperServerboundPlayerActionPacket_Action.STOP_DESTROY_BLOCK, side, bukkitPlayer.getWorld().getMaxHeight(), -1);
+//                            ap.currentBlock = null;
+//                            ap.blockHitDelay = 5;
+//                            blockBroken = true;
+//                        }
+//                        packPlayer.level().destroyBlockProgress(-1, pos, (int) (ap.curBlockDamageMP * 10));
+//
+//                    }
+//                    packPlayer.resetLastActionTime();
+//                    ap.player.swingMainHand();
+//                    return blockBroken;
+//                }
+//                return false;
             }
 
             @Override
@@ -552,7 +704,7 @@ public class EntityPlayerActionPack {
                 Entity entity = Bukkit.getEntity(ap.lookingAtEntity);
                 if (entity != null) {
                     BoundingBox box = entity.getBoundingBox();
-                    ap.lookAt(WrapperVec3.wrap(box.getCenterX(),box.getCenterY(),box.getCenterZ()));
+                    ap.lookAt(WrapperVec3.construct(box.getCenterX(),box.getCenterY(),box.getCenterZ()));
                 }
                 return false;
             }

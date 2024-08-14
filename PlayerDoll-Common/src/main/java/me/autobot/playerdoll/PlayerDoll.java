@@ -1,5 +1,7 @@
 package me.autobot.playerdoll;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import me.autobot.playerdoll.config.BasicConfig;
 import me.autobot.playerdoll.config.FlagConfig;
 import me.autobot.playerdoll.doll.Doll;
@@ -9,12 +11,12 @@ import me.autobot.playerdoll.gui.GUIManager;
 import me.autobot.playerdoll.gui.MenuWatcher;
 import me.autobot.playerdoll.listener.bukkit.*;
 import me.autobot.playerdoll.listener.doll.DollJoin;
-import me.autobot.playerdoll.listener.doll.DollRespawn;
 import me.autobot.playerdoll.listener.doll.DollSetting;
+import me.autobot.playerdoll.netty.ConnectionFetcher;
+import me.autobot.playerdoll.netty.DollConnection;
 import me.autobot.playerdoll.scheduler.BukkitScheduler;
 import me.autobot.playerdoll.scheduler.FoliaScheduler;
-import me.autobot.playerdoll.scheduler.Scheduler;
-import me.autobot.playerdoll.socket.SocketHelper;
+import me.autobot.playerdoll.scheduler.SchedulerHelper;
 import me.autobot.playerdoll.util.ConfigLoader;
 import me.autobot.playerdoll.util.FileUtil;
 import me.autobot.playerdoll.util.ReflectionUtil;
@@ -34,31 +36,30 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class PlayerDoll extends JavaPlugin {
-    public static final boolean isDev = false;
+    public static final boolean isDev = true;
     public static PlayerDoll PLUGIN;
     public static Logger LOGGER;
     public static String SERVER_VERSION;
     public static String INTERNAL_VERSION;
     public static ServerBranch serverBranch;
     public static boolean BUNGEECORD;
-    public static Scheduler scheduler;
 
     // SPIGOT < PAPER < FOLIA
     public enum ServerBranch {
         SPIGOT {
             @Override
             void setupScheduler(Plugin plugin) {
-                scheduler = new BukkitScheduler(plugin);
+                SchedulerHelper.scheduler = new BukkitScheduler(plugin);
             }
         }, PAPER {
             @Override
             void setupScheduler(Plugin plugin) {
-                scheduler = new BukkitScheduler(plugin);
+                SchedulerHelper.scheduler = new BukkitScheduler(plugin);
             }
         }, FOLIA {
             @Override
             void setupScheduler(Plugin plugin) {
-                scheduler = new FoliaScheduler(plugin);
+                SchedulerHelper.scheduler = new FoliaScheduler(plugin);
             }
         };
 
@@ -100,10 +101,11 @@ public final class PlayerDoll extends JavaPlugin {
 
 
         registerEventHandlers();
-        registerCommands();
+        //registerCommands();
 
         checkUpdate();
 
+        ConnectionFetcher.init(PLUGIN, serverBranch == ServerBranch.FOLIA, BUNGEECORD);
 //        if (basicConfig.convertPlayer.getValue()) {
 //            convertConnection = new ConvertPlayerConnection();
 //            convertConnection.start();
@@ -113,7 +115,7 @@ public final class PlayerDoll extends JavaPlugin {
         // Trigger this in PlayerJoin
         if (!BUNGEECORD) {
             try {
-                scheduler.globalTaskDelayed(() -> prepareDollSpawn(basicConfig.autoJoinDelay.getValue()), 5);
+                SchedulerHelper.scheduler.globalTaskDelayed(() -> prepareDollSpawn(basicConfig.autoJoinDelay.getValue()), 5);
             } catch (Exception ignored) {
                 // Not to disable Plugin if Error was caught
             }
@@ -123,16 +125,11 @@ public final class PlayerDoll extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-//        if (basicConfig.convertPlayer.getValue()) {
-//            convertConnection.interrupt();
-//        }
         if (serverBranch != ServerBranch.FOLIA) {
             // folia should not have Server Reload
             String kickReason = basicConfig.broadcastConvertShutdown.getValue() ? "(ConvertPlayer) Server Closed" : null;
 
-            DollManager.ONLINE_PLAYERS.values().forEach(extendPlayer -> {
-                extendPlayer.getBukkitPlayer().kickPlayer(kickReason);
-            });
+            DollManager.ONLINE_PLAYERS.values().forEach(extendPlayer -> extendPlayer.getBukkitPlayer().kickPlayer(kickReason));
         }
 
         if (basicConfig.adjustableMaxPlayer.getValue()) {
@@ -149,6 +146,7 @@ public final class PlayerDoll extends JavaPlugin {
             getServer().getMessenger().unregisterOutgoingPluginChannel(this,"playerdoll:doll");
             getServer().getMessenger().unregisterIncomingPluginChannel(this, "playerdoll:doll");
         }
+        DollConnection.shutDown();
     }
 
     private void registerEventHandlers() {
@@ -176,12 +174,7 @@ public final class PlayerDoll extends JavaPlugin {
         // Custom Event
         pluginManager.registerEvents(new DollJoin(), this);
         pluginManager.registerEvents(new DollSetting(), this);
-        pluginManager.registerEvents(new DollRespawn(), this);
     }
-
-    private void registerCommands() {
-    }
-
     private void initServerVersion() {
         SERVER_VERSION = Bukkit.getBukkitVersion().split("-")[0];
         switch (SERVER_VERSION) {
@@ -207,20 +200,19 @@ public final class PlayerDoll extends JavaPlugin {
             LOGGER.info("Server is running on " + serverBranch);
         } else {
             switch (configMod.toLowerCase()) {
-                case "spigot" -> {
-                    serverBranch = ServerBranch.SPIGOT;
-                }
-                case "paperseries" -> {
-                    serverBranch = ServerBranch.PAPER;
-                }
-                case "folia" -> {
-                    serverBranch = ServerBranch.FOLIA;
-                }
+                case "spigot" -> serverBranch = ServerBranch.SPIGOT;
+                case "paperseries" -> serverBranch = ServerBranch.PAPER;
+                case "folia" -> serverBranch = ServerBranch.FOLIA;
                 default -> {
                     LOGGER.severe("Unknown Mod in Config, Disable Plugin");
                     getPluginLoader().disablePlugin(this);
                 }
             }
+        }
+        if (serverBranch == null) {
+            LOGGER.severe("Server Mod cannot be detected or not assigned from Config, Disable Plugin");
+            LOGGER.severe("Please check config.yml -> server-mod");
+            getPluginLoader().disablePlugin(this);
         }
         serverBranch.setupScheduler(this);
     }
@@ -278,8 +270,11 @@ public final class PlayerDoll extends JavaPlugin {
                 if (BUNGEECORD && config.dollLastJoinServer.getValue().isEmpty()) {
                     continue;
                 }
-                Runnable r = () -> SocketHelper.createConnection(basicConfig.dollIdentifier.getValue() + config.dollName.getValue(), UUID.fromString(config.dollUUID.getValue()), null);
-                scheduler.globalTaskDelayed(r, delayOfEach * 20 * index);
+                GameProfile profile = new GameProfile(UUID.fromString(config.dollUUID.getValue()), basicConfig.dollIdentifier.getValue() + config.dollName.getValue());
+                profile.getProperties().clear();
+                profile.getProperties().put("textures", new Property("textures", config.skinProperty.getValue(), config.skinSignature.getValue()));
+                Runnable r = () -> DollConnection.connect(basicConfig.dollIdentifier.getValue() + config.dollName.getValue(), UUID.fromString(config.dollUUID.getValue()), null);
+                SchedulerHelper.scheduler.globalTaskDelayed(r, delayOfEach * 20 * index);
                 index++;
             }
         }

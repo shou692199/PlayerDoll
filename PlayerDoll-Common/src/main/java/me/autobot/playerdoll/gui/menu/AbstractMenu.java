@@ -125,7 +125,7 @@ public abstract class AbstractMenu implements Menu {
             return;
         }
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-        if (!pdc.has(ItemSetter.ITEM_KEY)) {
+        if (!pdc.has(ItemSetter.ITEM_KEY, new ButtonType())) {
             return;
         }
         Button action = pdc.get(ItemSetter.ITEM_KEY, new ButtonType());
@@ -155,7 +155,7 @@ public abstract class AbstractMenu implements Menu {
             return null;
         }
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-        if (!pdc.has(ItemSetter.ITEM_KEY)) {
+        if (!pdc.has(ItemSetter.ITEM_KEY, new ButtonType())) {
             return null;
         }
         return pdc.get(ItemSetter.ITEM_KEY, new ButtonType());

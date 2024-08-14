@@ -8,7 +8,6 @@ import me.autobot.playerdoll.doll.BaseEntity;
 import me.autobot.playerdoll.doll.Doll;
 import me.autobot.playerdoll.doll.DollManager;
 import me.autobot.playerdoll.util.FileUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;

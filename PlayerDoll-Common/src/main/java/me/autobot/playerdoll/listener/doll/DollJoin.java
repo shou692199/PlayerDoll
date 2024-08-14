@@ -12,6 +12,7 @@ import me.autobot.playerdoll.doll.config.DollConfig;
 import me.autobot.playerdoll.event.DollJoinEvent;
 import me.autobot.playerdoll.event.DollSettingEvent;
 import me.autobot.playerdoll.gui.DollGUIHolder;
+import me.autobot.playerdoll.scheduler.SchedulerHelper;
 import me.autobot.playerdoll.util.LangFormatter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -37,7 +38,7 @@ public class DollJoin implements Listener {
                 player.setOp(false);
                 player.setGameMode(GameMode.SURVIVAL);
             };
-            PlayerDoll.scheduler.entityTask(runnable, player);
+            SchedulerHelper.scheduler.entityTask(runnable, player);
         }
 
         Player caller = event.getCaller();
@@ -51,7 +52,7 @@ public class DollJoin implements Listener {
 //                player.setFlying(caller.isFlying());
 //            }
 //            if (PlayerDoll.serverBranch == PlayerDoll.ServerBranch.FOLIA) {
-//                PlayerDoll.scheduler.foliaTeleportAync(player, caller.getLocation());
+//                SchedulerHelper.scheduler.foliaTeleportAync(player, caller.getLocation());
 //            } else {
 //                player.teleport(player);
 //            }
@@ -173,7 +174,7 @@ public class DollJoin implements Listener {
                 }
                 String replaced = s.replaceAll("%name%",player.getName()).replaceAll("%uuid%",player.getUniqueId().toString());
                 Runnable task = () -> player.chat(replaced);
-                PlayerDoll.scheduler.entityTaskDelayed(task, player, 1 + count*interval);
+                SchedulerHelper.scheduler.entityTaskDelayed(task, player, 1 + count*interval);
                 count++;
             }
         }

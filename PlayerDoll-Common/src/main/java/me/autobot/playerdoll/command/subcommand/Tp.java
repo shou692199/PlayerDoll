@@ -8,6 +8,7 @@ import me.autobot.playerdoll.config.FlagConfig;
 import me.autobot.playerdoll.doll.BaseEntity;
 import me.autobot.playerdoll.doll.DollManager;
 import me.autobot.playerdoll.doll.config.DollConfig;
+import me.autobot.playerdoll.scheduler.SchedulerHelper;
 import me.autobot.playerdoll.util.LangFormatter;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -36,7 +37,7 @@ public class Tp extends SubCommand implements DollCommandExecutor {
             o.setZ(o.getBlockZ() + 0.5);
         }
         if (PlayerDoll.serverBranch == PlayerDoll.ServerBranch.FOLIA) {
-            PlayerDoll.scheduler.foliaTeleportAync(target, o);
+            SchedulerHelper.scheduler.foliaTeleportAync(target, o);
         } else {
             target.teleport(o);
         }
@@ -44,15 +45,15 @@ public class Tp extends SubCommand implements DollCommandExecutor {
 
 //        if (sender.getWorld() == target.getWorld()) {
 //            if (center) {
-//                PlayerDoll.scheduler.globalTask(toBlockTask);
+//                SchedulerHelper.scheduler.globalTask(toBlockTask);
 //            } else {
-//                PlayerDoll.scheduler.globalTask(toPlayerTask);
+//                SchedulerHelper.scheduler.globalTask(toPlayerTask);
 //            }
 //            return;
 //        }
-//        PlayerDoll.scheduler.globalTask(toPlayerTask);
+//        SchedulerHelper.scheduler.globalTask(toPlayerTask);
 //        if (center) {
-//            PlayerDoll.scheduler.globalTask(toBlockTask);
+//            SchedulerHelper.scheduler.globalTask(toBlockTask);
 //        }
     }
 

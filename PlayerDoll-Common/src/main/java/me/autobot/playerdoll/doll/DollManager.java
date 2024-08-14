@@ -7,7 +7,6 @@ import me.autobot.playerdoll.util.FileUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachment;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

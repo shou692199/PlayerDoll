@@ -34,7 +34,7 @@ public class Info extends SubCommand implements DollCommandExecutor {
 
         OfflinePlayer offlineDoll = Bukkit.getOfflinePlayer(UUID.fromString(dollConfig.dollUUID.getValue()));
 
-        BaseComponent dollStatsComponent = new ComponentBuilder()
+        BaseComponent[] dollStatsComponent = new ComponentBuilder()
                 .append(LangFormatter.YAMLReplace("info-cmd.name")).color(ChatColor.LIGHT_PURPLE)
                 .append(dollNameComponent).color(ChatColor.WHITE)
                 .append(" | ").color(ChatColor.WHITE).event((HoverEvent) null)
@@ -43,7 +43,7 @@ public class Info extends SubCommand implements DollCommandExecutor {
                 .append(" | ").color(ChatColor.WHITE).event((ClickEvent) null)
                 .append(LangFormatter.YAMLReplace("info-cmd.owner")).color(ChatColor.AQUA)
                 .append(dollConfig.ownerName.getValue()).color(ChatColor.WHITE)
-                .build();
+                .create();
 
         BaseComponent dollSettingComponent = new TextComponent(LangFormatter.YAMLReplace("info-cmd.doll-setting"));
         ComponentBuilder dollSettingBuilder = new ComponentBuilder();
@@ -53,7 +53,7 @@ public class Info extends SubCommand implements DollCommandExecutor {
                     .color(configKey.getValue() ? ChatColor.GREEN : ChatColor.RED);
             dollSettingBuilder.append(" ").color(ChatColor.WHITE);
         });
-        dollSettingComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(dollSettingBuilder.build())));
+        dollSettingComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(dollSettingBuilder.create())));
 
         String suggestDollSetCmd = String.format("/playerdoll:doll set %s", targetString);
         dollSettingComponent.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, suggestDollSetCmd));
@@ -66,7 +66,7 @@ public class Info extends SubCommand implements DollCommandExecutor {
                     .color(toggle ? ChatColor.GREEN : ChatColor.RED);
             generalSettingBuilder.append(" ").color(ChatColor.WHITE);
         });
-        generalSettingComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(generalSettingBuilder.build())));
+        generalSettingComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(generalSettingBuilder.create())));
 
         String suggestGSetCmd = String.format("/playerdoll:doll gset %s", targetString);
         generalSettingComponent.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, suggestGSetCmd));
@@ -91,13 +91,18 @@ public class Info extends SubCommand implements DollCommandExecutor {
 
             ComponentBuilder psetBuilder = new ComponentBuilder();
             psetBuilder.append(offlinePlayer.getName()).color(ChatColor.GOLD)
-                    .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(toggleBuilder.build())))
+                    .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(toggleBuilder.create())))
                     .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, suggestPSetCmd));
 
-            playerSettingBuilder.append(psetBuilder.build()).append(" ");
+            playerSettingBuilder.append(psetBuilder.create()).append(" ");
         });
 
-        sender.spigot().sendMessage(lineBreak, dollStatsComponent, lineBreak, dollSettingComponent, lineBreak, generalSettingComponent, lineBreak, playerSettingBuilder.build(), lineBreak);
+        sender.spigot().sendMessage(lineBreak);
+        sender.spigot().sendMessage(dollStatsComponent);
+        sender.spigot().sendMessage(lineBreak);
+        sender.spigot().sendMessage(dollSettingComponent, lineBreak, generalSettingComponent, lineBreak);
+        sender.spigot().sendMessage(playerSettingBuilder.create());
+        sender.spigot().sendMessage(lineBreak);
     }
 
     @Override

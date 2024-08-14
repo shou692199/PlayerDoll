@@ -1,11 +1,11 @@
 package me.autobot.playerdoll.gui.menu;
 
-import me.autobot.playerdoll.PlayerDoll;
 import me.autobot.playerdoll.doll.Doll;
 import me.autobot.playerdoll.doll.DollManager;
 import me.autobot.playerdoll.gui.DollGUIHolder;
 import me.autobot.playerdoll.gui.ItemSetter;
 import me.autobot.playerdoll.persistantdatatype.ButtonAction;
+import me.autobot.playerdoll.scheduler.SchedulerHelper;
 import me.autobot.playerdoll.util.LangFormatter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -83,7 +83,7 @@ public class DollBackpackMenu extends AbstractMenu {
                 case DROP,CONTROL_DROP -> dropSlot(event);
             }
         }
-        PlayerDoll.scheduler.entityTaskDelayed(this::updateGUIContent, dollPlayer, 4);
+        SchedulerHelper.scheduler.entityTaskDelayed(this::updateGUIContent, dollPlayer, 4);
     }
 
     private ItemStack[] updateInventory() {
@@ -101,7 +101,7 @@ public class DollBackpackMenu extends AbstractMenu {
             items[27+i] = dollInvItems[i+27]; // inv row3
             items[36+i] = dollInvItems[i]; // hot bar
         }
-        items[8] = ItemSetter.setItem(Material.CHEST, ButtonAction.OPEN_INVENTORY, 1, LangFormatter.YAMLReplace("inv-menu.real-inv"), null);
+        items[8] = ItemSetter.setItem(Material.CHEST, ButtonAction.NONE, 1, LangFormatter.YAMLReplace("inv-menu.real-inv"), null);
         return items;
     }
 
@@ -111,7 +111,7 @@ public class DollBackpackMenu extends AbstractMenu {
             String commandSlot = String.format("/playerdoll:doll slot %s %d", DollManager.dollShortName(dollPlayer.getName()), event.getSlot() - 35);
             player.chat(commandSlot);
         }
-        //new Slot(player,fullDollName, new String[]{Integer.toString(event.getSlot()-35)});
+
         ItemStack currItem = event.getCurrentItem();
         if (currItem == null || event.getSlot() < 36) {
             return;

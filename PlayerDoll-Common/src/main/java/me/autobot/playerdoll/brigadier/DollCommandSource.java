@@ -56,8 +56,10 @@ public class DollCommandSource {
         sender = toCommandSender(commandSourceStack.getSource());
         this.context = commandSourceStack;
     }
+
     public static int execute(CommandContext<Object> commandSourceStack, DollCommandExecutor executor) {
         DollCommandSource source = new DollCommandSource(commandSourceStack, executor);
+        // Should be useless
         if (source.sender instanceof ProxiedCommandSender proxiedCommandSender) {
             return executor.onCommand(proxiedCommandSender.getCallee(), source.context);
         }

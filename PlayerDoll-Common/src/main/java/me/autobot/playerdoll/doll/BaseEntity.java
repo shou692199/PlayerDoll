@@ -8,5 +8,6 @@ public interface BaseEntity {
     boolean isDoll();
     Player getBukkitPlayer();
     EntityPlayerActionPack getActionPack();
+    //ApiEntityPlayerActionPack getApiActionPack();
     void updateActionPack();
 }

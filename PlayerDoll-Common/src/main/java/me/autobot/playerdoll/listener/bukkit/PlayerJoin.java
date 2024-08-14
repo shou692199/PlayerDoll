@@ -6,6 +6,7 @@ import me.autobot.playerdoll.config.FlagConfig;
 import me.autobot.playerdoll.doll.Doll;
 import me.autobot.playerdoll.doll.DollManager;
 import me.autobot.playerdoll.doll.config.DollConfig;
+import me.autobot.playerdoll.scheduler.SchedulerHelper;
 import me.autobot.playerdoll.util.ReflectionUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,7 +24,7 @@ public class PlayerJoin implements Listener {
         if (!firstJoin && PlayerDoll.BUNGEECORD) {
             firstJoin = true;
             // wait for 5s
-            PlayerDoll.scheduler.globalTaskDelayed(() -> PlayerDoll.PLUGIN.prepareDollSpawn(basicConfig.autoJoinDelay.getValue()), 100);
+            SchedulerHelper.scheduler.globalTaskDelayed(() -> PlayerDoll.PLUGIN.prepareDollSpawn(basicConfig.autoJoinDelay.getValue()), 100);
         }
         Player player = event.getPlayer();
         final boolean isDoll = ReflectionUtil.getServerPlayer(player) instanceof Doll;
@@ -33,7 +34,7 @@ public class PlayerJoin implements Listener {
             }
             Doll doll = (Doll) ReflectionUtil.getServerPlayer(player);
             if (PlayerDoll.serverBranch == PlayerDoll.ServerBranch.FOLIA) {
-                PlayerDoll.scheduler.foliaTeleportAync(player, doll.getCaller().getLocation());
+                SchedulerHelper.scheduler.foliaTeleportAync(player, doll.getCaller().getLocation());
             } else {
                 player.teleport(doll.getCaller());
             }

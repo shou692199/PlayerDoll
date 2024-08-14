@@ -1,13 +1,13 @@
 package me.autobot.playerdoll.command.subcommand.actionpack;
 
 import com.mojang.brigadier.context.CommandContext;
-import me.autobot.playerdoll.PlayerDoll;
 import me.autobot.playerdoll.command.DollCommandExecutor;
 import me.autobot.playerdoll.command.SubCommand;
 import me.autobot.playerdoll.config.FlagConfig;
 import me.autobot.playerdoll.doll.BaseEntity;
 import me.autobot.playerdoll.doll.DollManager;
 import me.autobot.playerdoll.doll.config.DollConfig;
+import me.autobot.playerdoll.scheduler.SchedulerHelper;
 import me.autobot.playerdoll.util.LangFormatter;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -26,7 +26,7 @@ public class ActionDrop extends SubCommand implements DollCommandExecutor {
 
     @Override
     public void execute() {
-        PlayerDoll.scheduler.entityTask(() -> targetEntity.getActionPack().drop(slotId, dropStack), targetEntity.getBukkitPlayer());
+        SchedulerHelper.scheduler.entityTask(() -> targetEntity.getActionPack().drop(slotId, dropStack), targetEntity.getBukkitPlayer());
     }
 
     @Override

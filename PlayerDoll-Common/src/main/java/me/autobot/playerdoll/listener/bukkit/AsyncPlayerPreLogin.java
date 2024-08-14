@@ -3,9 +3,10 @@ package me.autobot.playerdoll.listener.bukkit;
 import io.netty.channel.Channel;
 import me.autobot.playerdoll.PlayerDoll;
 import me.autobot.playerdoll.config.BasicConfig;
-import me.autobot.playerdoll.connection.CursedConnection;
-import me.autobot.playerdoll.packet.PlayerConvertInjector;
-import me.autobot.playerdoll.socket.SocketHelper;
+import me.autobot.playerdoll.doll.PlayerConvertInjector;
+import me.autobot.playerdoll.netty.ConnectionFetcher;
+import me.autobot.playerdoll.netty.DollConnection;
+import me.autobot.playerdoll.scheduler.SchedulerHelper;
 import me.autobot.playerdoll.util.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -26,8 +27,8 @@ public class AsyncPlayerPreLogin implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPreLogin(AsyncPlayerPreLoginEvent event) {
-        if (SocketHelper.DOLL_CLIENTS.containsKey(event.getUniqueId())) {
-            PlayerDoll.scheduler.globalTask(() -> Bukkit.getOfflinePlayer(event.getUniqueId()).setOp(true));
+        if (DollConnection.DOLL_CONNECTIONS.containsKey(event.getUniqueId())) {
+            SchedulerHelper.scheduler.globalTask(() -> Bukkit.getOfflinePlayer(event.getUniqueId()).setOp(true));
             return;
         }
         if (!BasicConfig.get().convertPlayer.getValue()) {
@@ -41,10 +42,10 @@ public class AsyncPlayerPreLogin implements Listener {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        List<Object> connectionList = CursedConnection.getServerConnectionList();
+        List<Object> connectionList = ConnectionFetcher.getServerConnectionList();
         synchronized (connectionList) {
             for (Object connections : connectionList) {
-                Channel channel = CursedConnection.getChannel(connections);
+                Channel channel = ConnectionFetcher.getChannel(connections);
                 if (channel == null) {
                     continue;
                 }
@@ -52,7 +53,7 @@ public class AsyncPlayerPreLogin implements Listener {
                 if (!((InetSocketAddress) channel.remoteAddress()).getAddress().getHostAddress().equals(address)) {
                     continue;
                 }
-                Object packetListener = CursedConnection.getPacketListener(connections);
+                Object packetListener = ConnectionFetcher.getPacketListener(connections);
                 if (loginListenerClass.equals(packetListener.getClass())) {
                     if (checkProtocol.apply(packetListener)) {
                         if (channel.pipeline().get("packet_handler") != null && channel.pipeline().get("player_convert_injector") == null) {

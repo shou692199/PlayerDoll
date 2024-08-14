@@ -1,5 +1,7 @@
 package me.autobot.playerdoll.command.subcommand;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import com.mojang.brigadier.context.CommandContext;
 import me.autobot.playerdoll.PlayerDoll;
 import me.autobot.playerdoll.command.DollCommandExecutor;
@@ -8,7 +10,7 @@ import me.autobot.playerdoll.config.BasicConfig;
 import me.autobot.playerdoll.config.FlagConfig;
 import me.autobot.playerdoll.doll.DollManager;
 import me.autobot.playerdoll.doll.config.DollConfig;
-import me.autobot.playerdoll.socket.SocketHelper;
+import me.autobot.playerdoll.netty.DollConnection;
 import me.autobot.playerdoll.util.FileUtil;
 import me.autobot.playerdoll.util.LangFormatter;
 import org.bukkit.Bukkit;
@@ -21,6 +23,7 @@ import java.util.UUID;
 public class Spawn extends SubCommand implements DollCommandExecutor {
     private Player caller;
     private UUID targetUUID;
+    private GameProfile profile;
     public Spawn(String target) {
         super(target);
     }
@@ -38,7 +41,8 @@ public class Spawn extends SubCommand implements DollCommandExecutor {
             return;
         }
         // Spawn with Prefixed value (can be flexibly changed)
-        SocketHelper.createConnection(BasicConfig.get().dollIdentifier.getValue() + targetString, targetUUID, caller);
+        DollConnection.connect(profile, caller);
+        //SocketHelper.createConnection(BasicConfig.get().dollIdentifier.getValue() + targetString, targetUUID, caller);
     }
 
     @Override
@@ -67,6 +71,11 @@ public class Spawn extends SubCommand implements DollCommandExecutor {
 
         DollConfig offlineConfig = DollConfig.getTemporaryConfig(targetString);
         targetUUID = UUID.fromString(offlineConfig.dollUUID.getValue());
+
+        profile = new GameProfile(targetUUID, BasicConfig.get().dollIdentifier.getValue() + targetString);
+        profile.getProperties().clear();
+        profile.getProperties().put("textures", new Property("textures", offlineConfig.skinProperty.getValue(), offlineConfig.skinSignature.getValue()));
+
         if (executeIfManage(context.getInput())) {
             return 1;
         }
