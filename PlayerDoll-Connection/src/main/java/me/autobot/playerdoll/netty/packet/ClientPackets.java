@@ -15,10 +15,10 @@ public abstract class ClientPackets {
     public static final Class<?> commonDisconnectPacketClass = ReflectionUtil.getClass(s + "common.ClientboundDisconnectPacket");
 
     // 1.20.4+
-    public static final Class<?> resourcePackPushPacketClass = ReflectionUtil.getClass(s + ".common.ClientboundResourcePackPushPacket");
+    public static final Class<?> resourcePackPushPacketClass = ReflectionUtil.getClass(s + "common.ClientboundResourcePackPushPacket");
 
     // 1.20.2
-    public static final Class<?> resourcePackPacketClass = ReflectionUtil.getClass(s + ".common.ClientboundResourcePackPacket");
+    public static final Class<?> resourcePackPacketClass = ReflectionUtil.getClass(s + "common.ClientboundResourcePackPacket");
 
     private static final Method getKeepAliveIdMethod;
     private static final Method getCommonDisconnectReasonMethod;
