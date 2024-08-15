@@ -143,7 +143,7 @@ public abstract class ClientPackets {
 
         if (resourcePackPacketClass != null) {
             getResourcePackRequiredMethod = Arrays.stream(resourcePackPacketClass.getDeclaredMethods())
-                    .filter(method -> method.getReturnType() == boolean.class)
+                    .filter(method -> method.getReturnType() == boolean.class && method.getParameterCount() == 0)
                     .findFirst().orElseThrow();
             getResourcePackRequiredMethod.setAccessible(true);
         }
@@ -155,7 +155,7 @@ public abstract class ClientPackets {
                     .orElseThrow();
             getResourcePackPushUUIDMethod.setAccessible(true);
             getResourcePackRequiredMethod = Arrays.stream(resourcePackPushPacketClass.getDeclaredMethods())
-                    .filter(method -> method.getReturnType() == boolean.class)
+                    .filter(method -> method.getReturnType() == boolean.class && method.getParameterCount() == 0)
                     .findFirst().orElseThrow();
             getResourcePackRequiredMethod.setAccessible(true);
         }
