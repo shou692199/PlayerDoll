@@ -172,4 +172,9 @@ public class ServerDoll extends ExtServerPlayer implements Doll {
         //this.foodData = new FoodData();
         //dollDisconnect();
     }
+    @Override
+    public boolean isLocalPlayer() {
+        // Fix boat ticking
+        return getVehicle() != null;
+    }
 }
