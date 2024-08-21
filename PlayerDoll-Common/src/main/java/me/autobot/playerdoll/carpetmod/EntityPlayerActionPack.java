@@ -2,6 +2,7 @@ package me.autobot.playerdoll.carpetmod;
 
 import me.autobot.playerdoll.doll.BaseEntity;
 import me.autobot.playerdoll.doll.Doll;
+import me.autobot.playerdoll.util.ReflectionUtil;
 import me.autobot.playerdoll.wrapper.WrapperServerLevel;
 import me.autobot.playerdoll.wrapper.block.WrapperBlockPos;
 import me.autobot.playerdoll.wrapper.block.WrapperBlockState;
@@ -367,15 +368,13 @@ public class EntityPlayerActionPack {
                                 } else if (entityHit != null) {
                                     packPlayer.resetLastActionTime();
                                     //WrapperEntityHitResult entityHit = (WrapperEntityHitResult) hit;
-                                    WrapperEntity entity = packPlayer.wrapEntity(entityHit);
-
-                                    Entity craftEntity = entity.getCraftEntity();
+                                    WrapperEntity entity = packPlayer.wrapEntity(ReflectionUtil.getNMSEntity(entityHit));
 
                                     boolean handWasEmpty = ap.isEmpty(EntityPlayerActionPack.ActionType.getItemInHand(bukkitPlayer, hand));
 
-                                    boolean itemFrameEmpty = (craftEntity instanceof ItemFrame itemFrame) && ap.isEmpty(itemFrame.getItem());
-                                    Location entityLocation = craftEntity.getLocation();
-                                    Location subtractedLocation = entityHit.getLocation().subtract(entityLocation);
+                                    boolean itemFrameEmpty = (entityHit instanceof ItemFrame itemFrame) && ap.isEmpty(itemFrame.getItem());
+                                    Location entityLocation = entityHit.getLocation();
+                                    Location subtractedLocation = hit.getHitPosition().toLocation(entityHit.getWorld()).subtract(entityLocation);
                                     WrapperVec3 relativeHitPos = WrapperVec3.construct(subtractedLocation.getX(), subtractedLocation.getY(), subtractedLocation.getZ());
                                     if (entity.interactAt(player, relativeHitPos, hand).consumesAction()) {
                                         ap.itemUseCooldown = 3;

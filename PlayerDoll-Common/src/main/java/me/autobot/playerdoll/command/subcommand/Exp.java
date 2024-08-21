@@ -21,23 +21,7 @@ public class Exp extends SubCommand implements DollCommandExecutor {
 
     @Override
     public void execute() {
-        if (level == -1) {
-            // Get All
-            while (true) {
-                if (!getExp()) {
-                    return;
-                }
-            }
-        } else if (level == 1) {
-            getExp();
-            return;
-        }
-
-        for (int i = 0; i < level; i++) {
-            if (!getExp()) {
-                return;
-            }
-        }
+        getExp(level);
     }
 
     @Override
@@ -69,25 +53,35 @@ public class Exp extends SubCommand implements DollCommandExecutor {
         return 1;
     }
 
-    private boolean getExp() {
+    private void getExp(int level) {
         if (target.getLevel() <= 0) {
-            return false;
+            return;
+        }
+        
+        if (level == -1) {
+            level = target.getLevel();
         }
 
-        float sumPoints = target.getExp() * target.getExpToLevel() + sender.getExp() * sender.getExpToLevel();
+        int sumPoints = Math.round(target.getExp() * target.getExpToLevel() + sender.getExp() * sender.getExpToLevel());
         target.setExp(0);
         sender.setExp(0);
 
-        target.setLevel(target.getLevel() - 1);
-        sumPoints += target.getExpToLevel();
+        for (int i = 0; i < level; ++i) {
+            target.setLevel(target.getLevel() - 1);
+            int expToLevel = target.getExpToLevel();
+            while (expToLevel >= sender.getExpToLevel()) {
+                expToLevel -= sender.getExpToLevel();
+                sender.setLevel(sender.getLevel() + 1);
+            }
+            sumPoints += expToLevel;
+        }
 
         while (sumPoints >= sender.getExpToLevel()) {
             sumPoints -= sender.getExpToLevel();
-            sender.setLevel(sender.getLevel()+1);
+            sender.setLevel(sender.getLevel() + 1);
         }
         if (sumPoints > 0) {
-            sender.setExp(sumPoints/sender.getExpToLevel());
+            sender.setExp((float) sumPoints / sender.getExpToLevel());
         }
-        return true;
     }
 }

@@ -16,5 +16,9 @@ public class ServerLoad implements Listener {
         // Or else crash with Linkage Error
         CommandBuilder.COMMANDS.forEach(CommandRegister::registerCommand);
         Bukkit.getOnlinePlayers().forEach(Player::updateCommands);
+            //CommandBuilder.COMMANDS.forEach(CommandRegister::registerCommand);
+
+        //}
+        //Bukkit.getOnlinePlayers().forEach(Player::updateCommands);
     }
 }

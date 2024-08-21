@@ -32,17 +32,17 @@ public class SimpleActionCommand extends SubCommand implements DollCommandExecut
 
     @Override
     public int onCommand(CommandSender sender, CommandContext<Object> context) {
-        if (!(sender instanceof Player playerSender)) {
-            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
-            return 0;
-        }
+//        if (!(sender instanceof Player playerSender)) {
+//            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
+//            return 0;
+//        }
         if (target == null) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
             return 0;
         }
         targetEntity = DollManager.ONLINE_DOLLS.get(target.getUniqueId());
         if (targetEntity == null) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
             return 0;
         }
 
@@ -51,7 +51,7 @@ public class SimpleActionCommand extends SubCommand implements DollCommandExecut
             return 1;
         }
 
-        if (!outputHasPerm(playerSender, DollConfig.getOnlineDollConfig(target.getUniqueId()), type)) {
+        if (!outputHasPerm(sender, DollConfig.getOnlineDollConfig(target.getUniqueId()), type)) {
             return 0;
         }
 

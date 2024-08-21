@@ -19,7 +19,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class Remove extends SubCommand implements DollCommandExecutor {
-    private Player sender;
+    private CommandSender sender;
     private DollConfig dollConfig;
     public Remove(String target) {
         super(target);
@@ -60,13 +60,13 @@ public class Remove extends SubCommand implements DollCommandExecutor {
 
     @Override
     public int onCommand(CommandSender sender, CommandContext<Object> context) {
-        if (!(sender instanceof Player playerSender)) {
-            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
-            return 0;
-        }
-        this.sender = playerSender;
+//        if (!(sender instanceof Player playerSender)) {
+//            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
+//            return 0;
+//        }
+        this.sender = sender;
         if (targetString == null) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
             return 0;
         }
         // Direct execute
@@ -75,8 +75,8 @@ public class Remove extends SubCommand implements DollCommandExecutor {
             return 1;
         }
 
-        if (!isOwnerOrOp(playerSender, dollConfig)) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("not-owner"));
+        if (!isOwnerOrOp(sender, dollConfig)) {
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("not-owner"));
             return 0;
         }
 

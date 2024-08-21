@@ -77,10 +77,9 @@ public class CommandRegister {
             Command wrapperCommand = (Command) ReflectionUtil.newInstance(vanillaCommandWrapperConstructor, vanillaCommandDispatcherInstance, node);
             simpleCommandMap.register("minecraft", wrapperCommand);
         }
-
     }
 //    public static void unregisterCommand(LiteralCommandNode<?> node) {
-//        dispatcher.getRoot().removeCommand(node.getName());
+//        brigadierDispatcher.getRoot().removeCommand(node.getName());
 //    }
     /*
     public static void registerCommand(String label) {

@@ -9,6 +9,7 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TranslatableComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
@@ -32,7 +33,7 @@ public abstract class SubCommand {
     protected boolean fromManageCommand(String input) {
         return input.split(" ")[0].endsWith("dollmanage");
     }
-    protected boolean outputValidProfile(Player sender, GameProfile profile) {
+    protected boolean outputValidProfile(CommandSender sender, GameProfile profile) {
         //if (PlayerDoll.BUNGEECORD) {
         //    PlayerDoll.LOGGER.warning("This command is not yet tested in BungeeCord");
         //}
@@ -60,20 +61,22 @@ public abstract class SubCommand {
         return false;
     }
 
-    protected boolean outputHasPerm(Player sender, DollConfig config, FlagConfig.PersonalFlagType flagType) {
+    protected boolean outputHasPerm(CommandSender sender, DollConfig config, FlagConfig.PersonalFlagType flagType) {
         if (!hasDollPermission(sender, config, flagType)) {
             sender.sendMessage(LangFormatter.YAMLReplaceMessage("no-permission", flagType.getCommand(), config.dollName.getValue()));
             return false;
         }
         return true;
     }
-    public static boolean hasDollPermission(Player sender, DollConfig config, FlagConfig.PersonalFlagType flagType) {
-        UUID senderUUID = sender.getUniqueId();
+    public static boolean hasDollPermission(CommandSender sender, DollConfig config, FlagConfig.PersonalFlagType flagType) {
         // Owner check
         if (isOwnerOrOp(sender, config)) {
             return true;
         }
-
+        if (!(sender instanceof Player player)) {
+            return true;
+        }
+        UUID senderUUID = player.getUniqueId();
         boolean generalAdmin = config.generalSetting.get(FlagConfig.PersonalFlagType.ADMIN);
         boolean hasPSet = config.playerSetting.containsKey(senderUUID);
         // check player has been PSet from the doll
@@ -86,10 +89,15 @@ public abstract class SubCommand {
         boolean personalAdmin = pSetMap.get(FlagConfig.PersonalFlagType.ADMIN);
 
         return personalAdmin || pSetMap.get(flagType);
+
     }
-    public static boolean isOwnerOrOp(Player sender, DollConfig config) {
-        UUID senderUUID = sender.getUniqueId();
-        // Owner check
-        return sender.isOp() || senderUUID.toString().equals(config.ownerUUID.getValue());
+    public static boolean isOwnerOrOp(CommandSender sender, DollConfig config) {
+        if (sender instanceof Player player) {
+            UUID senderUUID = player.getUniqueId();
+            // Owner check
+            return sender.isOp() || senderUUID.toString().equals(config.ownerUUID.getValue());
+        }
+        // Non player command sender
+        return true;
     }
 }

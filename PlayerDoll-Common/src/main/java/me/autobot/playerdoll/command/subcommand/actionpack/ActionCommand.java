@@ -17,7 +17,7 @@ import org.bukkit.util.RayTraceResult;
 
 public class ActionCommand extends SubCommand implements DollCommandExecutor {
 
-    private Player sender;
+    private CommandSender sender;
     private final EntityPlayerActionPack.ActionType type;
     private final EntityPlayerActionPack.Action actionMode;
     private final FlagConfig.PersonalFlagType flagType;
@@ -35,9 +35,9 @@ public class ActionCommand extends SubCommand implements DollCommandExecutor {
             sender.sendMessage(LangFormatter.YAMLReplaceMessage("self-jump"));
             return;
         }
-        if (type == EntityPlayerActionPack.ActionType.LOOK_AT) {
-            Location loc = sender.getEyeLocation();
-            RayTraceResult result = sender.getWorld().rayTraceEntities(loc,loc.getDirection(), 3.5, entity -> !(entity instanceof Player));
+        if (type == EntityPlayerActionPack.ActionType.LOOK_AT && sender instanceof Player player) {
+            Location loc = player.getEyeLocation();
+            RayTraceResult result = player.getWorld().rayTraceEntities(loc,loc.getDirection(), 3.5, entity -> !(entity instanceof Player));
             if (result == null || result.getHitEntity() == null) {
                 sender.sendMessage(LangFormatter.YAMLReplaceMessage("empty-lookat"));
                 return;
@@ -49,24 +49,24 @@ public class ActionCommand extends SubCommand implements DollCommandExecutor {
 
     @Override
     public int onCommand(CommandSender sender, CommandContext<Object> context) {
-        if (!(sender instanceof Player playerSender)) {
-            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
-            return 0;
-        }
+//        if (!(sender instanceof Player playerSender)) {
+//            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
+//            return 0;
+//        }
         boolean self = context.getInput().split(" ")[2].equals(CommandBuilder.SELF_INDICATION); // doll <action> <target> ...
-        this.sender = playerSender;
+        this.sender = sender;
         if (target == null) {
-            if (self) {
+            if (self && sender instanceof Player playerSender) {
                 targetEntity = DollManager.ONLINE_PLAYERS.get(playerSender.getUniqueId());
             } else {
-                playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
+                sender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
                 return 0;
             }
         } else {
             targetEntity = DollManager.ONLINE_DOLLS.get(target.getUniqueId());
         }
         if (targetEntity == null) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
             return 0;
         }
 
@@ -77,7 +77,7 @@ public class ActionCommand extends SubCommand implements DollCommandExecutor {
 
         // Converted Player does not have config
         if (targetEntity.isDoll()) {
-            if (!outputHasPerm(playerSender, DollConfig.getOnlineDollConfig(target.getUniqueId()), flagType)) {
+            if (!outputHasPerm(sender, DollConfig.getOnlineDollConfig(target.getUniqueId()), flagType)) {
                 return 0;
             }
         }

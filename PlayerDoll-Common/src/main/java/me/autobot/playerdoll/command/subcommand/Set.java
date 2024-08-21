@@ -17,7 +17,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class Set extends SubCommand implements DollCommandExecutor {
-    private Player sender;
+    private CommandSender sender;
     private final FlagConfig.GlobalFlagType flagType;
     private final boolean toggle;
     public Set(Player target) {
@@ -48,23 +48,25 @@ public class Set extends SubCommand implements DollCommandExecutor {
         PlayerDoll.callSyncEvent(new DollSettingEvent(sender, doll, settings, toggle));
     }
     private void openGUI() {
-        sender.openInventory(DollGUIHolder.DOLL_GUI_HOLDERS.get(target.getUniqueId()).menus.get(DollGUIHolder.MenuType.SETTING).getInventory());
+        if (sender instanceof Player player) {
+            player.openInventory(DollGUIHolder.DOLL_GUI_HOLDERS.get(target.getUniqueId()).menus.get(DollGUIHolder.MenuType.SETTING).getInventory());
+        }
     }
 
     @Override
     public int onCommand(CommandSender sender, CommandContext<Object> context) {
-        if (!(sender instanceof Player playerSender)) {
-            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
-            return 0;
-        }
-        this.sender = playerSender;
+//        if (!(sender instanceof Player playerSender)) {
+//            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
+//            return 0;
+//        }
+        this.sender = sender;
         if (target == null) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
             return 0;
         }
         BaseEntity targetEntity = DollManager.ONLINE_DOLLS.get(target.getUniqueId());
         if (targetEntity == null) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
             return 0;
         }
         // Direct execute
@@ -72,7 +74,7 @@ public class Set extends SubCommand implements DollCommandExecutor {
             return 1;
         }
 
-        if (!outputHasPerm(playerSender, DollConfig.getOnlineDollConfig(target.getUniqueId()), FlagConfig.PersonalFlagType.SET)) {
+        if (!outputHasPerm(sender, DollConfig.getOnlineDollConfig(target.getUniqueId()), FlagConfig.PersonalFlagType.SET)) {
             return 0;
         }
 

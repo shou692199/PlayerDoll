@@ -13,7 +13,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class Despawn extends SubCommand implements DollCommandExecutor {
-    private Player sender;
+    private CommandSender sender;
     public Despawn(Player target) {
         super(target);
     }
@@ -27,26 +27,26 @@ public class Despawn extends SubCommand implements DollCommandExecutor {
 
     @Override
     public int onCommand(CommandSender sender, CommandContext<Object> context) {
-        if (!(sender instanceof Player playerSender)) {
-            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
-            return 0;
-        }
+//        if (!(sender instanceof Player playerSender)) {
+//            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
+//            return 0;
+//        }
         if (target == null) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
             return 0;
         }
         BaseEntity targetEntity = DollManager.ONLINE_DOLLS.get(target.getUniqueId());
         if (targetEntity == null) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
             return 0;
         }
-        this.sender = playerSender;
+        this.sender = sender;
         // Direct execute
         if (executeIfManage(context.getInput())) {
             return 1;
         }
 
-        if (!outputHasPerm(playerSender, DollConfig.getOnlineDollConfig(target.getUniqueId()), FlagConfig.PersonalFlagType.DESPAWN)) {
+        if (sender instanceof Player playerSender && !outputHasPerm(playerSender, DollConfig.getOnlineDollConfig(target.getUniqueId()), FlagConfig.PersonalFlagType.DESPAWN)) {
             return 0;
         }
         execute();

@@ -224,7 +224,7 @@ public class CommandBuilder {
                 .then(getDollTarget(player -> LangFormatter.YAMLReplace("cmd-hover.exp", player.getLevel()))
                         .executes(commandContext -> CommandBuilder.performCommand(commandContext, player -> new Exp(player, 1)))
                         //.executes(commandContext -> performExp(commandContext, 1))
-                        .then(literal("all").executes(commandContext -> CommandBuilder.performCommand(commandContext, player -> new Exp(player, 1))))
+                        .then(literal("all").executes(commandContext -> CommandBuilder.performCommand(commandContext, player -> new Exp(player, -1))))
                         //.then(literal("all").executes(commandContext -> performExp(commandContext, -1)))
                         .then(argument("levels", IntegerArgumentType.integer(1))
                                 .executes(commandContext -> CommandBuilder.performCommand(commandContext, player -> new Exp(player, IntegerArgumentType.getInteger(commandContext, "levels"))))))

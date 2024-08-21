@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class Give extends SubCommand implements DollCommandExecutor {
-    private Player sender;
+    private CommandSender sender;
     private final GameProfile profile;
     private DollConfig dollConfig;
     public Give(String target, Collection<GameProfile> profiles) {
@@ -42,12 +42,8 @@ public class Give extends SubCommand implements DollCommandExecutor {
 
                 creationCounts.put(oldOwnerUUID,oldOwnerCount-1);
                 creationCounts.put(profile.getId(),newOwnerCount+1);
-
             }
         }
-
-
-
 
         dollConfig.ownerName.setNewValue(profile.getName());
         dollConfig.ownerUUID.setNewValue(profile.getId().toString());
@@ -57,41 +53,41 @@ public class Give extends SubCommand implements DollCommandExecutor {
     }
     @Override
     public int onCommand(CommandSender sender, CommandContext<Object> context) {
-        if (!(sender instanceof Player playerSender)) {
-            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
-            return 0;
-        }
-        this.sender = playerSender;
+//        if (!(sender instanceof Player playerSender)) {
+//            sender.sendMessage(LangFormatter.YAMLReplaceMessage("require-player"));
+//            return 0;
+//        }
+        this.sender = sender;
         if (targetString == null) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("no-target"));
             return 0;
         }
         String[] splitInput = context.getInput().split(" ");
         if (splitInput.length == 4) {
             // Player have skin permission & inputted skin
             if (splitInput[3].startsWith("@")) { // doll pset <name> <player (profile)>
-                playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("multi-select"));
+                sender.sendMessage(LangFormatter.YAMLReplaceMessage("multi-select"));
                 return 0;
             }
         }
-        if (!outputValidProfile(playerSender, profile)) {
+        if (!outputValidProfile(sender, profile)) {
             return 0;
         }
 
         Player newOwner = Bukkit.getPlayer(profile.getId());
         if (newOwner == null) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("player-offline"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("player-offline"));
             return 0;
         }
 
         if (targetString.equalsIgnoreCase(profile.getName())) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("self-give"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("self-give"));
             return 0;
         }
-        // Not allow Doll pset
+
         FileUtil fileUtil = FileUtil.INSTANCE;
         if (fileUtil.getFile(fileUtil.getDollDir(), DollManager.dollShortName(profile.getName()) + ".yml").exists()) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("doll-give"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("doll-give"));
             return 0;
         }
         // Direct execute
@@ -100,13 +96,13 @@ public class Give extends SubCommand implements DollCommandExecutor {
             return 1;
         }
 
-        if (!isOwnerOrOp(playerSender, dollConfig)) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("not-owner"));
+        if (!isOwnerOrOp(sender, dollConfig)) {
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("not-owner"));
             return 0;
         }
 
         if (!newOwner.hasPermission("playerdoll.command.create")) {
-            playerSender.sendMessage(LangFormatter.YAMLReplaceMessage("cannot-create"));
+            sender.sendMessage(LangFormatter.YAMLReplaceMessage("cannot-create"));
             return 0;
         }
 
