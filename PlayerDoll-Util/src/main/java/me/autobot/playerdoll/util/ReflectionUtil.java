@@ -2,6 +2,7 @@ package me.autobot.playerdoll.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Constructor;
@@ -151,6 +152,14 @@ public final class ReflectionUtil {
         return invokeMethod(Player.class, getBukkitPlayerMethod, nmsPlayer);
     }
 
+
+    public static Object getNMSEntity(Entity entity) {
+        try {
+            return invokeMethod(entity.getClass().getMethod("getHandle"), entity);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
     public static Object getServerPlayer(Player player) {
         try {
             return invokeMethod(player.getClass().getMethod("getHandle"), player);

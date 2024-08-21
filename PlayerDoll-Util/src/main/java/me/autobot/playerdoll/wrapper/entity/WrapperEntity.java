@@ -4,11 +4,11 @@ import me.autobot.playerdoll.util.ReflectionUtil;
 import me.autobot.playerdoll.wrapper.phys.WrapperVec3;
 
 public interface WrapperEntity {
-
     static WrapperEntity invokeNMS(Object nmsEntity) {
         Class<?> nmsWrapperEntity = ReflectionUtil.getPluginNMSClass("wrapper.NMSEntity");
         return (WrapperEntity) ReflectionUtil.newInstance(nmsWrapperEntity.getConstructors()[0], nmsEntity);
     }
+
     Object toObj();
 
     org.bukkit.entity.Entity getCraftEntity();
